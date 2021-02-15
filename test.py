@@ -1,7 +1,6 @@
 import torch
-from main import data, device, test_data_size
 
-def computeTestSetAccuracy(model, loss_func, optimizer):
+def computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer):
     '''
     Function to compute the accuracy on the test set
     Paramters
@@ -13,8 +12,10 @@ def computeTestSetAccuracy(model, loss_func, optimizer):
     # Get DataLoader
     test_data_loader = data['test_dataloader']
 
-    test_acc = 0
-    test_loss = 0
+    test_acc = 0.0
+    test_loss = 0.0
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     with torch.no_grad():
         # set to evaluation mode

@@ -1,7 +1,6 @@
 import torch
-from main import data, train_data_size, valid_data_size, device
 
-def train_and_validate(model, loss_func, optimizer, epochs=25):
+def train_and_validate(data, train_data_size, valid_data_size, model, loss_func, optimizer, epochs=25):
     '''
     Parmaeters
         :param model: Model to train and validate
@@ -24,6 +23,8 @@ def train_and_validate(model, loss_func, optimizer, epochs=25):
 
     best_loss = 100000
     best_epoch = None
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     for epoch in range(epochs):
         print(f'Epoch {epoch+1}/{epochs}')
@@ -131,6 +132,6 @@ def train_and_validate(model, loss_func, optimizer, epochs=25):
             best_epoch = epoch
             torch.save(model, 'COVID19'+'_model_'+str(epoch)+'.pt')
 
-        print("Epoch : {:03d}, Training: Loss - {:.4f}, Accuracy - {:.4f}%, \n\t\tValidation : Loss - {:.4f}, Accuracy - {:.4f}%".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100))
+        print("Epoch{:02d}: training loss {:.4f}, training accuracy {:.4f}%, validation loss {:.4f}, validation accuracy {:.4f}%".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100))
         
     return model, best_epoch

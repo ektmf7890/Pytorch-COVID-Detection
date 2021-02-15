@@ -1,6 +1,14 @@
 import torch
+from torchvision import transforms
 from PIL import Image
-from main import image_transforms
+
+image_transform = transforms.Compose([
+    transforms.Resize(size=256),
+    transforms.CenterCrop(size=224),   # image size for resnet50: (224, 224)
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],
+                            [0.229, 0.224, 0.225])
+])
 
 def predict(model, test_image_name):
     '''
@@ -12,7 +20,7 @@ def predict(model, test_image_name):
     '''
 
     test_image = Image.open(test_image_name)
-    test_image_tensor = image_transforms['test'](test_image)
+    test_image_tensor = image_transform(test_image)
     test_image_tensor - test_image_tensor.view(1, 3, 244, 244)
 
     with torch.no_grad():

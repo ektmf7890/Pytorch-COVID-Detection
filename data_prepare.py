@@ -4,7 +4,7 @@ import shutil
 
 def data_prepare():
     class_names = ['covid', 'normal', 'viral']
-    root_dir = 'COVID-19RadiographyDatabase'
+    root_dir = 'COVID-19 Radiography Database'
     source_dirs = ['COVID', 'NORMAL', 'Viral Pneumonia']
 
     # Creating directory struture
@@ -63,3 +63,5 @@ def data_prepare():
     # Move remaining images to train set
     for class_ in class_names:
         shutil.move(os.path.join(root_dir, class_), os.path.join(root_dir, 'train', class_))
+
+data_prepare()

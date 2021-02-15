@@ -1,7 +1,18 @@
-# Image Transformations
-from torchvision import transforms
-from torchvision.models import resnet
+from train_model import train_and_validate
+from test import computeTestSetAccuracy
+from dataset import ChestXRayDataset
+from predict import predict
 
+import os
+import torch
+import torch.optim as optim
+from torchvision import transforms
+import torch.nn as nn
+from torchvision import models
+from torch.utils.data import DataLoader
+
+
+# Image Transformations
 image_transforms = { 
     'train': transforms.Compose([
         transforms.Resize(size=256),
@@ -23,10 +34,7 @@ image_transforms = {
 
 
 # Create Train/Valid/Test Datasets
-import os
-from dataset import ChestXRayDataset
-
-root_dir = 'COVID-19RadiographyDatabase'
+root_dir = 'COVID-19 Radiography Database'
 class_names = ['covid', 'normal', 'viral']
 
 train_image_dirs = {
@@ -67,10 +75,7 @@ train_data_size = len(train_dataset)
 valid_data_size = len(valid_dataset)
 test_data_size = len(valid_dataset)
 
-
 # DataLoader for each Dataset
-from torch.utils.data import DataLoader
-
 batch_size = 6
 
 data = {
@@ -95,16 +100,12 @@ data = {
 
 
 # Creating the Model
-from torchvision import models
-
 # Load pretrained ResNet50 model and freeze parameters
 resnet50 = models.resnet50(pretrained=True)
 for param in resnet50.parameters():
     param.requires_grad = False
 
 # Transform the final fully connected layer for transfer learning
-import torch.nn as nn
-
 fc_inputs = resnet50.fc.in_features
 num_classes = len(class_names)
 
@@ -125,39 +126,21 @@ resnet50.fc = nn.Sequential(
 loss_func = nn.NLLLoss()
 
 # Optimizer: Adam Optimization Alogrithm
-import torch.optim as optim
 optimizer = optim.Adam(params=resnet50.parameters())
 
-# Getting the device
-import torch
-device = torch.device("cpu")
-
-
 if __name__ == "__main__":
-
-    from data_prepare import data_prepare
-    data_prepare()
-
     # Train model and get the best epoch
-    from train_model import train_and_validate
-    trained_model, best_epoch = train_and_validate(
-        model=resnet50,
-        loss_func=loss_func,
-        optimizer=optimizer,
-        data=data,
-        epochs=20
-    )
+    # train_and_validate(data, train_data_size, valid_data_size, model, loss_func, optimizer, epochs=25):
+    trained_model, best_epoch = train_and_validate(data, train_data_size, valid_data_size, resnet50, loss_func, optimizer, 20)
     best_epoch_model = torch.load(f"COVID19_model_{best_epoch}.pt")
 
     # Get accuracy of trained model on test set
-    from test import computeTestSetAccuracy
+    # computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer)
     print('<Trained model>')
-    computeTestSetAccuracy(trained_model, loss_func=loss_func, optimizer=optimizer)
+    computeTestSetAccuracy(trained_model, test_data_size, resnet50, loss_func, optimizer)
 
     # Get accuracy of best epoch model on test set
-    from test import computeTestSetAccuracy
     print('<Best epoch model>')
-    computeTestSetAccuracy(best_epoch_model, loss_func=loss_func, optimizer=optimizer)
+    computeTestSetAccuracy(best_epoch_model, test_data_size, resnet50, loss_func, optimizer)
 
-    # Make prediction on random image
-    from predict import predict
+    

@@ -10,7 +10,9 @@ from torchvision import transforms
 import torch.nn as nn
 from torchvision import models
 from torch.utils.data import DataLoader
+from datetime import date
 
+today_date = date.today().strftime("%d_%m_%Y")
 
 # Image Transformations
 image_transforms = { 
@@ -73,7 +75,7 @@ test_dataset = ChestXRayDataset(
 
 train_data_size = len(train_dataset)
 valid_data_size = len(valid_dataset)
-test_data_size = len(valid_dataset)
+test_data_size = len(test_dataset)
 
 # DataLoader for each Dataset
 batch_size = 6
@@ -130,17 +132,18 @@ optimizer = optim.Adam(params=resnet50.parameters())
 
 if __name__ == "__main__":
     # Train model and get the best epoch
-    # train_and_validate(data, train_data_size, valid_data_size, model, loss_func, optimizer, epochs=25):
-    trained_model, best_epoch = train_and_validate(data, train_data_size, valid_data_size, resnet50, loss_func, optimizer, 20)
-    best_epoch_model = torch.load(f"COVID19_model_{best_epoch}.pt")
+    # train_and_validate(data, train_data_size, valid_data_size, model, loss_func, optimizer, epochs=25)
+    trained_model, best_epoch = train_and_validate(data, resnet50, loss_func, optimizer, 20)
+    torch.save(trained_model, os.path.join(today_date, 'COVID19_final_trained_model.pt'))
+
+    # Loading the best_epoch_model
+    best_epoch_path = os.path.join(today_date, 'COVID19'+'_model_'+str(best_epoch)+'.pt')
+    if os.path.exists(best_epoch_path):
+        best_epoch_model = torch.load(os.path.join(today_date, 'COVID19'+'_model_'+str(best_epoch)+'.pt'))
 
     # Get accuracy of trained model on test set
-    # computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer)
     print('<Trained model>')
-    computeTestSetAccuracy(trained_model, test_data_size, resnet50, loss_func, optimizer)
+    computeTestSetAccuracy(trained_model, resnet50, loss_func, optimizer)
 
-    # Get accuracy of best epoch model on test set
-    print('<Best epoch model>')
-    computeTestSetAccuracy(best_epoch_model, test_data_size, resnet50, loss_func, optimizer)
 
     

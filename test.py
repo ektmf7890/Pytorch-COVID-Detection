@@ -1,6 +1,6 @@
 import torch
 
-def computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer):
+def computeTestSetAccuracy(data, model, loss_func, optimizer):
     '''
     Function to compute the accuracy on the test set
     Paramters
@@ -28,9 +28,6 @@ def computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer):
             # labels: 1D tensor (bs)
             labels = labels.to(device)
 
-            # Clear existing gradients
-            optimizer.zero_grad()
-
             # Forward pass
             # outputs: 2D tensor (batch_size x number_of_classes)
             outputs = model(inputs)
@@ -50,7 +47,7 @@ def computeTestSetAccuracy(data, test_data_size, model, loss_func, optimizer):
             print("Test Batch number: {:03d}, Loss: {:.4f}, Accuracy: {:.4f}".format(j, loss.item(), acc.item()))
     
     # Average loss and accuracy
-    avg_test_loss = test_loss / test_data_size
-    avg_test_acc = test_acc / test_data_size
+    avg_test_loss = test_loss / len(test_data_loader.dataset)
+    avg_test_acc = test_acc / len(test_data_loader.dataset)
 
-    print("Test accuracy: {.4f}".format(avg_test_acc))
+    print("Test accuracy: {:.4f}%".format(avg_test_acc*100))

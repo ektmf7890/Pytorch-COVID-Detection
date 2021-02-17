@@ -1,6 +1,10 @@
 import torch
+import os
+from datetime import date
 
-def train_and_validate(data, train_data_size, valid_data_size, model, loss_func, optimizer, epochs=25):
+today_date = date.today().strftime("%d_%m_%Y")
+
+def train_and_validate(data, model, loss_func, optimizer, epochs=25):
     '''
     Parmaeters
         :param model: Model to train and validate
@@ -85,7 +89,7 @@ def train_and_validate(data, train_data_size, valid_data_size, model, loss_func,
             print("acc.item()", acc.item())
             '''
 
-            print("Batch number: {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}".format(i, loss.item(), acc.item()))
+            # print("Batch number: {:03d}, Training: Loss: {:.4f}, Accuracy: {:.4f}".format(i, loss.item(), acc.item()))
             
         # Validation: No gradient checking needed
         with torch.no_grad():
@@ -98,9 +102,6 @@ def train_and_validate(data, train_data_size, valid_data_size, model, loss_func,
                 inputs = inputs.to(device)
                 # labels: 1D tensor (bs)
                 labels = labels.to(device)
-
-                # Clear existing gradients
-                optimizer.zero_grad()
 
                 # Forward pass
                 # outputs: 2D tensor (batch_size x number_of_classes)
@@ -121,17 +122,20 @@ def train_and_validate(data, train_data_size, valid_data_size, model, loss_func,
         
         # Average loss and accuracy of this epoch
         # i+1: number of batches in train set, j+1: number of batches in valid set
-        avg_train_loss = train_loss / train_data_size
-        avg_train_acc = train_acc / train_data_size
-        avg_valid_loss = valid_loss / valid_data_size
-        avg_valid_acc = valid_acc / valid_data_size
+        avg_train_loss = train_loss / len(train_dataloader.dataset)
+        avg_train_acc = train_acc / len(train_dataloader.dataset)
+        avg_valid_loss = valid_loss / len(valid_dataloader.dataset)
+        avg_valid_acc = valid_acc / len(valid_dataloader.dataset)
 
         # Save the model is it has the bect valid_acc until now
         if avg_valid_loss < best_loss:
             best_loss = avg_valid_loss
             best_epoch = epoch
-            torch.save(model, 'COVID19'+'_model_'+str(epoch)+'.pt')
+            if not os.path.exists(today_date):
+                os.mkdir(today_date)
+            path = os.path.join(today_date, 'COVID19'+'_model_'+str(epoch)+'.pt')
+            torch.save(model, path)
 
-        print("Epoch{:02d}: training loss {:.4f}, training accuracy {:.4f}%, validation loss {:.4f}, validation accuracy {:.4f}%".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100))
+        print("Epoch{:02d}: training loss {:.4f}, training accuracy {:.4f}%/n/tvalidation loss {:.4f}, validation accuracy {:.4f}%".format(epoch+1, avg_train_loss, avg_train_acc*100, avg_valid_loss, avg_valid_acc*100))
         
     return model, best_epoch
